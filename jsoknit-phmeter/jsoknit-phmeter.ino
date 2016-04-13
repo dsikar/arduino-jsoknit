@@ -1,3 +1,4 @@
+#include "libdef.h"
 /*
  pHduino_basic_code.ino - pHduino basic code.
  Copyright (c) 2015 Carlos A. Neves
