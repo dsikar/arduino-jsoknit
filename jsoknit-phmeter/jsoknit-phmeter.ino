@@ -98,6 +98,7 @@ void setup(void){
   //Serial.println("Temp/oC E/V pH");
   Serial.println("Temp/oC pH");
 
+  Serial.println(libdef);
 }
 
 void loop(void){
@@ -111,7 +112,7 @@ void loop(void){
 
   val_T = readADC(PH_TEMP_ADC_PIN, PH_TIME_ADC_READINGS_MICROSECONS);
   T = 100 * val_T * 5 / 1023;
-  T = T - 13; // faulty LM35 calibration
+  // T = T - 13; // faulty LM35 calibration
   // T = PH_TEMPERATURE_VALUE_INITIAL_CELCIUS; // uncomment this line in case no temperature sensor
   
   Serial.print(T, 2);
