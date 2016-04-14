@@ -48,7 +48,6 @@ const char *libdef =
     }] \
   }";
 
-
 /*
 TODO
 Add parser here.

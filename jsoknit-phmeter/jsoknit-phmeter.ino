@@ -1,4 +1,7 @@
+#include <SoftwareSerial.h>
+#include <ArduinoJson.h>
 #include "libdef.h"
+
 /*
  pHduino_basic_code.ino - pHduino basic code.
  Copyright (c) 2015 Carlos A. Neves
@@ -71,6 +74,51 @@ float R;
 float T;
 float pH;
 
+// Bluetooth serial
+
+#define RX   2
+#define TX   3
+
+SoftwareSerial mySerial(RX, TX);
+
+/*
+void CheckSerial()
+Listen to Bluetooth module
+*/
+void CheckSerial() {
+  String content = "";
+  char character;
+  while(mySerial.available()) {
+      character = mySerial.read();
+      content.concat(character);
+      delay(10);
+  }
+  if (content != "") {
+    if (content.substring(0,6) == "libdef") {
+      mySerial.println(libdef); 
+    } else {
+      Parse(content);
+    }
+  }
+}
+
+/*
+void Parse(String content) 
+Parse JSON string and deal with
+function calls.
+*/
+void Parse(String content) {  
+  int str_len = content.length() + 1;
+  char char_array[str_len];
+  content.toCharArray(char_array, str_len);
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(char_array);
+  const char* function = root["function"];
+  if(strcmp(function, "readPH()") == 0) {
+    mySerial.println(pH);
+  }    
+}
+
 unsigned int readADC(unsigned char channel, unsigned reading_time) {
   double d;
   int i;
@@ -98,7 +146,6 @@ void setup(void){
   //Serial.println("Temp/oC E/V pH");
   Serial.println("Temp/oC pH");
 
-  Serial.println(libdef);
 }
 
 void loop(void){
@@ -144,5 +191,7 @@ void loop(void){
   digitalWrite(PH_LED_PIN, LOW);
 
   delay(PH_TIME_BETWEEN_ACQUISITIONS_MS);
+  
+  CheckSerial();
 
 }
