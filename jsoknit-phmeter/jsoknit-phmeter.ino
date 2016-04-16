@@ -114,8 +114,13 @@ void Parse(String content) {
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& root = jsonBuffer.parseObject(char_array);
   const char* function = root["function"];
-  if(strcmp(function, "readPH()") == 0) {
-    mySerial.println(pH);
+
+  if(strcmp(function, "readPH()") == 0) { 
+    float myPH = getPH();
+    mySerial.println(myPH);
+    //mySerial.println();
+    Serial.print(myPH, 2);
+    Serial.println();
   }    
 }
 
@@ -134,36 +139,18 @@ unsigned int readADC(unsigned char channel, unsigned reading_time) {
   return (unsigned int)(d);
 }
 
-void setup(void){
-
-  // setup LED and buzzer
-  pinMode(PH_LED_PIN, OUTPUT);
-  pinMode(PH_BUZZER_PIN, OUTPUT);
-
-  // Init serial port
-  Serial.begin(115200);
-
-  //Serial.println("Temp/oC E/V pH");
-  Serial.println("Temp/oC pH");
-
+void setup(void)
+{
+  // init bluetooth serial
+  // for details see https://github.com/dsikar/jskonit-proof-of-concept
+  mySerial.begin(57600);
+  Serial.begin(57600);
 }
 
-void loop(void){
-
-  digitalWrite(PH_LED_PIN, HIGH);
-
-  // Temperature
-  // Obs.: You can operate the pHduino without a temperature sensor.
-  // In this case, you need setup a temperature value up
-  // and comment the readADC and calc lines.
-
+float getPH()
+{
   val_T = readADC(PH_TEMP_ADC_PIN, PH_TIME_ADC_READINGS_MICROSECONS);
   T = 100 * val_T * 5 / 1023;
-  // T = T - 13; // faulty LM35 calibration
-  // T = PH_TEMPERATURE_VALUE_INITIAL_CELCIUS; // uncomment this line in case no temperature sensor
-  
-  Serial.print(T, 2);
-  Serial.print(" ");
 
   val_R = readADC(PH_REF_ADC_PIN, PH_TIME_ADC_READINGS_MICROSECONS);
   R = PH_GAIN_STAGE2_REF * (val_R * 5.0 / 1024);
@@ -171,7 +158,6 @@ void loop(void){
   // ADC value and voltage of electrochemical potential
   val_E = readADC(PH_PH_ADC_PIN, PH_TIME_ADC_READINGS_MICROSECONS);
   E = -1 * ((val_E * 5.0 / 1024) - R) / PH_GAIN_STAGE1_PH;
-
   // print pH
   // delta_pH = -(F/(2.303*R*T))*delta_E
   // <http://en.wikipedia.org/wiki/PH>
@@ -180,18 +166,9 @@ void loop(void){
   // Kelvin temperature T = celcius temperature plus 273.15 K <http://en.wikipedia.org/wiki/Kelvin>
   // Faraday constant F = 96485 C <http://en.wikipedia.org/wiki/Faraday_constant>
   pH = (float)((-5038.8 * E / (273.15 + T)) + 7.0);
+  return pH;
+}
 
-  Serial.print(pH, 2);
-  Serial.println();
-
-  digitalWrite(PH_BUZZER_PIN, HIGH);
-  delay(100);
-  digitalWrite(PH_BUZZER_PIN, LOW);
-
-  digitalWrite(PH_LED_PIN, LOW);
-
-  delay(PH_TIME_BETWEEN_ACQUISITIONS_MS);
-  
+void loop(void){
   CheckSerial();
-
 }

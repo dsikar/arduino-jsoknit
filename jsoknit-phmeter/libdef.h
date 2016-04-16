@@ -47,8 +47,3 @@ const char *libdef =
      \"interval\":1 \
     }] \
   }";
-
-/*
-TODO
-Add parser here.
-*/
